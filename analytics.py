@@ -1,78 +1,64 @@
-class Stack:
-    def __init__(self):
-        self.items = []
-
-    def push(self, item):
-        # TODO
-        pass
-
-    def pop(self):
-        # TODO: Return None if empty
-        pass
-
-    def peek(self):
-        # TODO: Return None if empty
-        pass
-
-    def is_empty(self):
-        # TODO
-        pass
+import pandas as pd
 
 
-class Queue:
-    def __init__(self):
-        self.items = []
-
-    def enqueue(self, item):
-        # TODO
-        pass
-
-    def dequeue(self):
-        # TODO: Return None if empty
-        pass
-
-    def peek(self):
-        # TODO: Return None if empty
-        pass
-
-    def is_empty(self):
-        # TODO
-        pass
+REQUIRED_COLUMNS = [
+    "vehicle_id",
+    "plate_number",
+    "slot_id",
+    "entry_time",
+    "exit_time",
+    "status",
+    "parking_duration",
+]
 
 
-class HashTable:
-    def __init__(self, capacity=101):
-        self.capacity = capacity
-        self.table = [[] for _ in range(capacity)]
-
-    def insert(self, key, value):
-        # TODO: Implement hashing, collisions, and insertion/update
-        pass
-
-    def search(self, key):
-        # TODO: Return value or None
-        pass
-
-    def delete(self, key):
-        # TODO: Remove key if present
-        pass
-
-
-def linear_search(data, target, key=None):
-    # TODO: Return matching item or None
+def load_parking_data(file_path="data/parking_data.csv"):
+    # TODO: Load CSV and handle missing file or invalid format
     pass
 
 
-def binary_search(sorted_data, target, key=None):
-    # TODO: Search correctly sorted data using the same key
+def validate_parking_data(df):
+    # TODO: Check required columns and invalid records
     pass
 
 
-def merge_sort(data, key=None):
-    # TODO: Implement Merge Sort manually; return a new list
+def clean_parking_data(df):
+    # TODO: Handle duplicates, missing values, and invalid timestamps
     pass
 
 
-def greedy_slot_allocation(available_slots, vehicle):
-    # TODO: Select a suitable available slot using an explicit rule
+def calculate_parking_duration(df):
+    # TODO: Return a DataFrame with duration in minutes
+    pass
+
+
+def filter_parking_data(
+    df, start_date=None, end_date=None, status=None
+):
+    # TODO: Filter records using the supplied criteria
+    pass
+
+
+def get_parking_summary(df):
+    # TODO: Return summary metrics as a dictionary
+    pass
+
+
+def get_entries_over_time(df):
+    # TODO: Aggregate entries by date or hour
+    pass
+
+
+def get_peak_hours(df):
+    # TODO: Identify busy hours from actual entry records
+    pass
+
+
+def get_occupancy_by_slot(df):
+    # TODO: Summarize slot usage from the available records
+    pass
+
+
+def get_parking_insights(df):
+    # TODO: Return at least two meaningful data insights
     pass
