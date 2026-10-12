@@ -1,1 +1,2 @@
 
+vehicle_id,plate_number,slot_id,entry_time,exit_time,status,parking_duration
