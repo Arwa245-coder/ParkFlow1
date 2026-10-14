@@ -26,7 +26,8 @@ class Stack:
     def __init__(self): self._items: list[_StackEntry] = []
     def push(self, value, undo_callback=None): self._items.append(_StackEntry(value, undo_callback))
     def pop(self):
-        if not self._items: raise IndexError('Cannot pop from an empty stack.')
+        # core.py expects None when the stack is empty.
+        if not self._items: return None
         return self._items.pop().value
     def peek(self):
         if not self._items: raise IndexError('Cannot peek at an empty stack.')
@@ -44,8 +45,9 @@ class Queue(Generic[T]):
     """FIFO queue with amortized O(1) enqueue/dequeue."""
     def __init__(self): self._items: list[T] = []; self._front = 0
     def enqueue(self, item: T): self._items.append(item)
-    def dequeue(self) -> T:
-        if self.is_empty(): raise IndexError('Cannot dequeue from an empty queue.')
+    def dequeue(self) -> Optional[T]:
+        # core.py expects None when the queue is empty.
+        if self.is_empty(): return None
         item = self._items[self._front]; self._front += 1
         if self._front >= 32 and self._front * 2 >= len(self._items):
             self._items = self._items[self._front:]; self._front = 0
@@ -94,6 +96,10 @@ class HashTable(Generic[K, V]):
         return self._values[i]
     def get(self, key, default=None):
         i = self._find_slot(key); return default if i == -1 else self._values[i]
+    def insert(self, key, value):
+        self[key] = value
+    def search(self, key, default=None):
+        return self.get(key, default)
     def __contains__(self, key): return self._find_slot(key) != -1
     def delete(self, key):
         i = self._find_slot(key)
@@ -110,13 +116,14 @@ def _field(item, *names, default=None):
         if hasattr(item, name): return getattr(item, name)
     return default
 
-def linear_search(items: Iterable[T], target: Any, key: Callable[[T], Any] = lambda x: x, stats: Optional[AlgorithmStats] = None) -> int:
-    """Search unsorted data; return first index or -1."""
+def linear_search(items: Iterable[T], target: Any, key: Callable[[T], Any] = lambda x: x,
+                  stats: Optional[AlgorithmStats] = None, return_index: bool = False):
+    """Search unsorted data; return the item (core.py API) or index if requested."""
     stats = stats or AlgorithmStats()
     for i, item in enumerate(items):
         stats.comparisons += 1; stats.steps += 1
-        if key(item) == target: return i
-    return -1
+        if key(item) == target: return i if return_index else item
+    return -1 if return_index else None
 
 def binary_search(sorted_items: list[T], target: Any, key: Callable[[T], Any] = lambda x: x, stats: Optional[AlgorithmStats] = None) -> int:
     """Binary search; input MUST be sorted ascending by key(item)."""
@@ -175,6 +182,11 @@ def greedy_allocate_spot(vehicle: Any, spots: Iterable[T], strategy='cheapest', 
         return min(candidates, key=lambda x: _field(x, 'floor', 'floor_number', default=float('inf')))
     raise ValueError("strategy must be 'cheapest' or 'lowest_floor'")
 
+def greedy_slot_allocation(spots: Iterable[T], vehicle: Any, stats: Optional[AlgorithmStats] = None) -> Optional[T]:
+    """Compatibility wrapper for core.py: candidates first, vehicle second."""
+    return greedy_allocate_spot(vehicle, spots, stats=stats)
+
+
 def index_by(items: Iterable[T], key: Callable[[T], K]) -> HashTable[K, list[T]]:
     """Build a custom hash-table index; repeated keys map to lists."""
     result: HashTable[K, list[T]] = HashTable()
@@ -186,18 +198,18 @@ def index_by(items: Iterable[T], key: Callable[[T], K]) -> HashTable[K, list[T]]
 
 def compare_search_methods(items: list[T], target: Any, key: Callable[[T], Any] = lambda x: x) -> dict[str, Any]:
     """Return results and counters for linear search, Merge Sort, and binary search."""
-    ls = AlgorithmStats(); li = linear_search(items, target, key, ls)
+    ls = AlgorithmStats(); li = linear_search(items, target, key, ls, return_index=True)
     ms = AlgorithmStats(); ordered = merge_sort(items, key, ms)
     bs = AlgorithmStats(); bi = binary_search(ordered, target, key, bs)
     return {'linear_index': li, 'linear_stats': ls.as_dict(), 'sorted_items': ordered,
             'merge_sort_stats': ms.as_dict(), 'binary_index_in_sorted_items': bi, 'binary_stats': bs.as_dict()}
 
-__all__ = ['AlgorithmStats', 'Stack', 'Queue', 'HashTable', 'linear_search', 'binary_search', 'merge_sort', 'greedy_allocate_spot', 'index_by', 'compare_search_methods']
+__all__ = ['AlgorithmStats', 'Stack', 'Queue', 'HashTable', 'linear_search', 'binary_search', 'merge_sort', 'greedy_allocate_spot', 'greedy_slot_allocation', 'index_by', 'compare_search_methods']
 
 if __name__ == '__main__':
     s = Stack(); s.push('action', lambda: 'undone'); assert s.undo_last() == 'undone' and s.is_empty()
     q = Queue(); q.enqueue(1); q.enqueue(2); assert q.dequeue() == 1 and q.dequeue() == 2 and q.is_empty()
     h = HashTable(); h['A'] = 1; h['B'] = 2; assert h['A'] == 1 and h.delete('A') and 'A' not in h
     values = [7, 2, 9, 1, 5]; assert merge_sort(values) == [1, 2, 5, 7, 9]
-    assert linear_search(values, 9) == 2 and binary_search([1, 2, 5, 7, 9], 5) == 2
+    assert linear_search(values, 9, return_index=True) == 2 and linear_search(values, 9) == 9 and binary_search([1, 2, 5, 7, 9], 5) == 2
     print('All structures_and_algorithms.py smoke tests passed.')
