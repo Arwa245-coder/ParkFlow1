@@ -1,2 +1,3 @@
-
-vehicle_id,plate_number,slot_id,entry_time,exit_time,status,parking_duration
+streamlit>=1.30
+pandas>=2.0
+matplotlib>=3.7
